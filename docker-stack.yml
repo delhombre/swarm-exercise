@@ -1,0 +1,31 @@
+---
+version: "3.8"
+services:
+  web:
+    image: "delhombre/php-nosql:latest"
+    networks:
+      - overlay
+    volumes:
+      - type: volume
+        source: webdata
+        target: /var/www/html
+        volume:
+          nocopy: true
+    ports:
+      - "1480:80"
+    deploy:
+      mode: replicated
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+
+networks:
+  overlay:
+
+volumes:
+  webdata:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=s4storage1,rw,nolock,soft,exec"
+      device: ":/srv/s4-webdata"

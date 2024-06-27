@@ -1,0 +1,93 @@
+---
+- name: "All servers"
+  hosts: all
+  become: true
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: "Common OS tasks"
+      ansible.builtin.include_role:
+        name: os_common
+
+- name: "PROXY SERVERS"
+  hosts: proxy
+  become: true
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: "Install HAproxy"
+      ansible.builtin.include_role:
+        name: haproxy_install
+
+- name: "STORAGE SERVERS"
+  hosts: storage
+  become: true
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: "Install NFS"
+      ansible.builtin.include_role:
+        name: nfs_install
+    - name: "Create 's4-webdata' NFS export"
+      ansible.builtin.include_role:
+        name: nfs_create_export
+      vars:
+        nfs_dir: /srv/s4-webdata
+    - name: Copy "s4-webdata" files
+      ansible.builtin.copy:
+        src: "php/"
+        dest: /srv/s4-webdata
+        mode: preserve
+
+- name: "DOCKER ENGINE and SWARM PORTS OPENING"
+  hosts: docker
+  become: true
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: "Install Docker Engine"
+      ansible.builtin.include_role:
+        name: docker_install
+    - name: "Open ports on the swarm nodes"
+      ansible.builtin.include_role:
+        name: swarm_open_ports
+
+- name: "INITIALIZE SWARM"
+  hosts: swarm_manager
+  become: true
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: "Initialize Swarm"
+      ansible.builtin.include_role:
+        name: swarm_init
+
+- name: "JOIN SWARM WORKERS"
+  hosts: swarm_workers
+  become: true
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: "Join Swarm"
+      ansible.builtin.include_role:
+        name: swarm_join_worker
+
+- name: "DEPLOY DOCKER STACK"
+  hosts: swarm_manager
+  become: true
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: "Deploy Docker Stack"
+      ansible.builtin.include_role:
+        name: docker_deploy_stack
+
+- name: "FIREWALLD OPEN PORT"
+  hosts: docker
+  become: true
+  vars_files:
+    - vars/main.yml
+  tasks:
+    - name: "Open port on the swarm nodes"
+      ansible.builtin.include_role:
+        name: firewalld_open_port

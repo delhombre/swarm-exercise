@@ -1,0 +1,26 @@
+---
+# GLOBAL VARS
+main_user: "delhombre"
+published_port: "1480"
+http_port: "80"
+https_port: "443"
+
+# HAPROXY VARS
+cms_haproxy_lines:
+  - "# ligne1"
+  - "# ligne2"
+backend_servers:
+  - "web1 s4worker1"
+  - "web2 s4worker2"
+  - "web3 s4worker3"
+http_backend_port: "1480"
+
+# NFS
+nfs_networks: "10.77.70.0/24{{ nfs_options }}"
+
+# DOCKER VARS
+manager1_hostname: "s4manager1"
+main_group: "delhombre"
+stack_name: "s4"
+stack_path: "/home/{{ main_user }}/docker-stack.yml"
+port_to_open: "1480/tcp"
